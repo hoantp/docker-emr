@@ -53,7 +53,31 @@ COPY apache-hive-$HIVE_VERSION-bin.tar.gz /tmp/hive.tar.gz
 
 # RUN curl -L $HIVE_URL -o /tmp/hive.tar.gz \
 RUN tar xzf /tmp/hive.tar.gz -C /opt \
+ && cp /opt/hadoop-$HADOOP_VERSION/share/hadoop/common/lib/guava-27.0-jre.jar /opt/apache-hive-$HIVE_VERSION-bin/lib \
+ && rm /opt/apache-hive-$HIVE_VERSION-bin/lib/guava-19.0.jar \
  && rm -f /tmp/hive.tar.gz
+
+COPY hive/hive-site.xml /opt/apache-hive-$HIVE_VERSION-bin/conf
+
+ENV HIVE_HOME=/opt/apache-hive-$HIVE_VERSION-bin \
+    PATH=/opt/apache-hive-$HIVE_VERSION-bin/bin:$PATH
+
+RUN cd $HIVE_HOME \
+ && rm -rf metastore_db \
+ && schematool -initSchema -dbType derby
+
+EXPOSE 10000
+
+# Presto
+ENV PRESTO_VERSION=0.254.1
+ENV PRESTO_URL=https://repo1.maven.org/maven2/com/facebook/presto/presto-server/$PRESTO_VERSION/presto-server-$PRESTO_VERSION.tar.gz
+
+COPY presto-server-$PRESTO_VERSION.tar.gz /tmp/presto.tar.gz
+
+RUN tar xzf /tmp/presto.tar.gz -C /opt \
+ && rm -f /tmp/presto.tar.gz
+
+COPY presto /opt/presto-server-$PRESTO_VERSION/etc
 
 COPY entrypoint.sh /
 RUN chmod a+x /entrypoint.sh
