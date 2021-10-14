@@ -44,6 +44,9 @@ COPY hadoop/hadoop-env.sh $HADOOP_CONF_DIR
 # Hbase
 # ...
 
+# MariaDB
+RUN yum install -y mariadb-server && mysql_install_db --user=mysql
+COPY mariadb/my.cnf /etc
 
 # Hive
 ENV HIVE_VERSION=3.1.2
@@ -58,13 +61,10 @@ RUN tar xzf /tmp/hive.tar.gz -C /opt \
  && rm -f /tmp/hive.tar.gz
 
 COPY hive/hive-site.xml /opt/apache-hive-$HIVE_VERSION-bin/conf
+COPY mariadb/mysql-connector-java.jar /opt/apache-hive-$HIVE_VERSION-bin/lib
 
 ENV HIVE_HOME=/opt/apache-hive-$HIVE_VERSION-bin \
     PATH=/opt/apache-hive-$HIVE_VERSION-bin/bin:$PATH
-
-RUN cd $HIVE_HOME \
- && rm -rf metastore_db \
- && schematool -initSchema -dbType derby
 
 EXPOSE 10000
 
