@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+    hadoop:
+        build: ./hadoop
+        image: hadoop:3.1.2
+
+    hive:
+        build: ./hive
+        image: hive:3.2.1
+        environment:
+            - HADOOP_HOME=/opt
