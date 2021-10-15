@@ -1,15 +1,16 @@
 FROM amazoncorretto:8u302
 
 RUN amazon-linux-extras install -y epel \
- && yum install -y tar gzip util-linux vim hostname \
-    procps openssh-server openssh-clients supervisor
+ && yum install -y tar gzip util-linux vim less hostname \
+    procps openssh-server openssh-clients
 
 # SSH
-COPY ssh /root/.ssh
-EXPOSE 22
+RUN ssh-keygen -b 2048 -t rsa -f /root/.ssh/id_rsa -q -N "" \
+ && cat /root/.ssh/id_rsa.pub > /root/.ssh/authorized_keys \
+ && chmod 600 /root/.ssh/authorized_keys \
+ && /usr/bin/ssh-keygen -A
 
-RUN /usr/bin/ssh-keygen -A \
- && chmod 600 /root/.ssh/authorized_keys /root/.ssh/id_rsa
+EXPOSE 22
 
 # Hadoop
 ENV HADOOP_VERSION=3.2.1
@@ -71,14 +72,19 @@ EXPOSE 10000
 # Presto
 ENV PRESTO_VERSION=0.254.1
 ENV PRESTO_URL=https://repo1.maven.org/maven2/com/facebook/presto/presto-server/$PRESTO_VERSION/presto-server-$PRESTO_VERSION.tar.gz
+ENV PRESTO_CLI_URL=https://repo1.maven.org/maven2/com/facebook/presto/presto-cli/$PRESTO_VERSION/presto-cli-$PRESTO_VERSION-executable.jar
 
 COPY presto-server-$PRESTO_VERSION.tar.gz /tmp/presto.tar.gz
 
 RUN tar xzf /tmp/presto.tar.gz -C /opt \
+ && curl -L $PRESTO_CLI_URL -o /usr/local/bin/presto \
+ && chmod a+x /usr/local/bin/presto \
  && rm -f /tmp/presto.tar.gz
 
+ENV PRESTO_HOME=/opt/presto-server-$PRESTO_VERSION
 COPY presto /opt/presto-server-$PRESTO_VERSION/etc
 
+# ...
 COPY entrypoint.sh /
 RUN chmod a+x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
