@@ -9,15 +9,11 @@ hdfs namenode -format &&
 
 # Mariadb
 nohup /usr/libexec/mysqld > /var/log/mysqld.log &
-sleep 3
-/usr/bin/mysqladmin -u root password 'root' && schematool -initSchema -dbType mysql
+sleep 3 && /usr/bin/mysqladmin -u root password 'root' && schematool -initSchema -dbType mysql
 
 # Hive
 nohup $HIVE_HOME/bin/hive --service metastore > /var/log/hive.log &
+hadoop fs -mkdir -p /user/hive/warehouse
 
 # Presto
-$PRESTO_HOME/bin/launcher start
-
-# tail -f /dev/null
-# bin/bash -c "tail -f $HADOOP_HOME/logs/*.log"
-bin/bash
+$PRESTO_HOME/bin/launcher run
