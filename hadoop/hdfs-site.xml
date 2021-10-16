@@ -25,4 +25,8 @@
         <name>dfs.permission</name>
         <value>false</value>
     </property>
+    <property>
+        <name>dfs.data.dir</name>
+        <value>/mnt/dfs/data</value>
+    </property>
 </configuration>
